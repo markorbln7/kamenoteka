@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kamenoteka Art - Personalizovani Kameni Dekor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        accent: {
+                            DEFAULT: '#C26A4A',
+                            hover: '#9E4F34',
+                            light: '#D99A7F',
+                        },
+                        primary: {
+                            DEFAULT: '#4A372A',
+                            mid: '#6B4F3A',
+                            light: '#A67C5B',
+                        },
+                        brand: {
+                            bg: '#F5F1EB',
+                            card: '#FBF8F4',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap');
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #F5F1EB;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Playfair Display', serif;
+        }
+
+
+        .product-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(74,55,42,0.15);
+        }
+
+        .filter-btn {
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active {
+            background-color: #C26A4A;
+            color: white;
+        }
+
+        .placeholder-img {
+            background: linear-gradient(135deg, #e8ddd5 0%, #c9b5a4 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6B4F3A;
+            font-size: 0.875rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(74, 55, 42, 0.5);
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background-color: #FBF8F4;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            margin: auto;
+            box-shadow: 0 20px 60px rgba(74, 55, 42, 0.3);
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 1.5rem;
+            top: 1.5rem;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #A67C5B;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: #4A372A;
+        }
+    </style>
+</head>
+<body class="bg-brand-bg">
+    <!-- Navigation -->
+    <nav class="bg-brand-card shadow-sm fixed w-full top-0 z-50" style="background-color:#FBF8F4;">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-primary">Kamenoteka Art</h1>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#pocetna" class="text-primary-mid hover:text-accent transition">Početna</a>
+                    <a href="#proizvodi" class="text-primary-mid hover:text-accent transition">Proizvodi</a>
+                    <a href="#o-nama" class="text-primary-mid hover:text-accent transition">O nama</a>
+                    <a href="#kontakt" class="text-primary-mid hover:text-accent transition">Kontakt</a>
+                </div>
+                <button id="mobile-menu-btn" class="md:hidden">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="pocetna" class="pt-16" style="position:relative;">
+        <!-- Slika -->
+        <picture>
+            <source media="(max-width: 768px)" srcset="Heromobile.jpg">
+            <img src="Herodesktop.jpg" alt="Kamenoteka hero" style="width:100%; display:block; max-height:90vh; object-fit:cover;">
+        </picture>
+        <!-- Overlay over cele slike -->
+        <div style="position:absolute;inset:0;background:rgba(74,55,42,0.35);"></div>
+        <!-- Tekst sadržaj -->
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:1rem;">
+            <div class="text-center text-white" style="max-width:700px;">
+                <div style="background:rgba(74,55,42,0.55);backdrop-filter:blur(4px);border-radius:1.25rem;padding:2.5rem 2rem;">
+                    <h2 class="text-4xl md:text-6xl font-bold mb-4">Vaše Uspomene u Kamenu</h2>
+                    <p class="text-lg md:text-2xl mb-4" style="color:#f0d9cc;">Personalizovani kameni dekor sa vašim najdražim motivima</p>
+                    <p class="text-base md:text-lg mb-8" style="color:#e0c8b8;">Pretvorite posebne trenutke, znamenitosti i sećanja u jedinstvene umetničke komade. Savršen poklon za svaku priliku.</p>
+                    <a href="#proizvodi" class="inline-block px-8 py-4 rounded-full font-semibold text-lg transition shadow-lg" style="background-color:#F5F1EB;color:#4A372A;">
+                        Pogledajte Kolekciju
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section id="proizvodi" class="py-20 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-primary mb-4">Naši Proizvodi</h2>
+                <p class="text-primary-mid text-lg">Izaberite savršen komad za vaš dom ili poklon</p>
+            </div>
+
+            <!-- Filters -->
+            <div class="mb-12">
+                <div class="flex gap-3 overflow-x-auto pb-3" style="scrollbar-width:thin; scrollbar-color:#A67C5B #F5F1EB;">
+                    <button class="filter-btn active px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="all">Sve</button>
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="bebe">Bebe i porodica</button>
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="muzika">Muzika i film</button>
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="gradovi">Gradovi</button>
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="ljubimci">Krzneni prijatelji</button>
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="parovi">Pokloni za parove</button>
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="horoskop">Horoskop</button>
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="prolece">Prolećni motivi</button>
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="knjige">Priče i knjige</button>
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="ptice">Ptice</button>
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="citati">Izreke i citati</button>
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="strip">Strip</button>
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="umetnici">Inspirisano umetnicima</button>
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="zenstvenost">Ženstveni motivi</button>
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="ostalo">Ilustracije - ostalo</button>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div id="products-loading" class="col-span-3 text-center py-16 text-primary-mid">
+                    <p class="text-lg">Učitavanje proizvoda...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="o-nama" class="py-20 px-4" style="background-color:#FBF8F4;">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-4xl font-bold text-primary mb-6">O Nama</h2>
+            <p class="text-lg text-primary-mid mb-6">
+                Kamenoteka Art je specijalizovana radionica koja spaja tradiciju kamena sa modernom tehnologijom štampe. Svaki komad je ručno biran i pažljivo izrađen kako bi vaše uspomene trajale večno.
+            </p>
+            <p class="text-lg text-primary-mid mb-8">
+                Bilo da želite da sačuvate poseban trenutak, pokažete ljubav prema svom gradu, ili poklonite nešto jedinstveno - mi pretvaramo vaše ideje u umetnost od kamena.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-accent mb-2">500+</div>
+                    <div class="text-primary-mid">Zadovoljnih kupaca</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-accent mb-2">100%</div>
+                    <div class="text-primary-mid">Ručna izrada</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-accent mb-2">∞</div>
+                    <div class="text-primary-mid">Mogućnosti dizajna</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="kontakt" class="py-20 px-4 bg-brand-bg">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-primary mb-4">Kontaktirajte Nas</h2>
+                <p class="text-primary-mid text-lg">Imate pitanje ili želite da poručite? Javite nam se!</p>
+            </div>
+
+            <div class="rounded-2xl shadow-lg p-8 md:p-12" style="background-color:#FBF8F4;">
+                <form id="contact-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-primary-mid font-medium mb-2">Ime i prezime</label>
+                            <input type="text" name="from_name" autocomplete="name" required class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" style="border-color:#A67C5B; background-color:#F5F1EB; color:#4A372A;" placeholder="Vaše ime">
+                        </div>
+                        <div>
+                            <label class="block text-primary-mid font-medium mb-2">Email</label>
+                            <input type="email" name="from_email" autocomplete="email" required class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" style="border-color:#A67C5B; background-color:#F5F1EB; color:#4A372A;" placeholder="vas@email.com">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-primary-mid font-medium mb-2">Telefon</label>
+                        <input type="tel" name="phone" autocomplete="tel" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" style="border-color:#A67C5B; background-color:#F5F1EB; color:#4A372A;" placeholder="+381 60 123 4567">
+                    </div>
+
+                    <div>
+                        <label class="block text-primary-mid font-medium mb-2">Predmet</label>
+                        <input type="text" name="subject" id="contact-subject" autocomplete="off" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" style="border-color:#A67C5B; background-color:#F5F1EB; color:#4A372A;" placeholder="Predmet poruke">
+                    </div>
+
+                    <div>
+                        <label class="block text-primary-mid font-medium mb-2">Tip proizvoda</label>
+                        <select name="product_type" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" style="border-color:#A67C5B; background-color:#F5F1EB; color:#4A372A;">
+                            <option>Znamenitost</option>
+                            <option>Portret</option>
+                            <option>Priroda</option>
+                            <option>Custom dizajn</option>
+                            <option>Opšte pitanje</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-primary-mid font-medium mb-2">Poruka</label>
+                        <textarea name="message" required rows="5" autocomplete="off" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" style="border-color:#A67C5B; background-color:#F5F1EB; color:#4A372A;" placeholder="Opišite vašu ideju ili postavite pitanje..."></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-accent text-white py-4 rounded-lg font-semibold text-lg hover:bg-accent-hover transition shadow-lg">
+                        Pošalji Poruku
+                    </button>
+                </form>
+
+                <div class="mt-8 pt-8 text-center" style="border-top: 1px solid #D99A7F;">
+                    <p class="text-primary-mid mb-4">Ili nas kontaktirajte direktno:</p>
+                    <div class="flex flex-col md:flex-row justify-center gap-6">
+                        <a href="mailto:info@kamenoteka.rs" class="text-accent hover:text-accent-hover font-medium">
+                            📧 info@kamenoteka.rs
+                        </a>
+                        <a href="tel:+381601234567" class="text-accent hover:text-accent-hover font-medium">
+                            📱 +381 60 123 4567
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Order Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 class="text-3xl font-bold text-primary mb-6">Poručite Proizvod</h2>
+            <form id="product-contact-form" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-primary-mid font-medium mb-2">Ime i prezime</label>
+                        <input type="text" name="from_name" autocomplete="name" required class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" style="border-color:#A67C5B; background-color:#F5F1EB; color:#4A372A;" placeholder="Vaše ime">
+                    </div>
+                    <div>
+                        <label class="block text-primary-mid font-medium mb-2">Email</label>
+                        <input type="email" name="from_email" autocomplete="email" required class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" style="border-color:#A67C5B; background-color:#F5F1EB; color:#4A372A;" placeholder="vas@email.com">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-primary-mid font-medium mb-2">Telefon</label>
+                    <input type="tel" name="phone" autocomplete="tel" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" style="border-color:#A67C5B; background-color:#F5F1EB; color:#4A372A;" placeholder="+381 60 123 4567">
+                </div>
+
+                <div>
+                    <label class="block text-primary-mid font-medium mb-2">Predmet</label>
+                    <input type="text" name="subject" id="modal-subject" required autocomplete="off" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" style="border-color:#A67C5B; background-color:#F5F1EB; color:#4A372A;" placeholder="Naziv proizvoda">
+                </div>
+
+                <div>
+                    <label class="block text-primary-mid font-medium mb-2">Poruka</label>
+                    <textarea name="message" required rows="5" autocomplete="off" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" style="border-color:#A67C5B; background-color:#F5F1EB; color:#4A372A;" placeholder="Dodatne informacije o porudžbini..."></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-accent text-white py-4 rounded-lg font-semibold text-lg hover:bg-accent-hover transition shadow-lg">
+                    Pošalji Poruku
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-white py-12 px-4" style="background-color:#4A372A;">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <h3 class="text-2xl font-bold mb-4">Kamenoteka Art</h3>
+                    <p style="color:#D99A7F;">Vaše uspomene u kamenu</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Linkovi</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#pocetna" class="hover:text-white transition" style="color:#D99A7F;">Početna</a></li>
+                        <li><a href="#proizvodi" class="hover:text-white transition" style="color:#D99A7F;">Proizvodi</a></li>
+                        <li><a href="#o-nama" class="hover:text-white transition" style="color:#D99A7F;">O nama</a></li>
+                        <li><a href="#kontakt" class="hover:text-white transition" style="color:#D99A7F;">Kontakt</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Informacije</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-white transition" style="color:#D99A7F;">Uslovi korišćenja</a></li>
+                        <li><a href="#" class="hover:text-white transition" style="color:#D99A7F;">Politika privatnosti</a></li>
+                        <li><a href="#" class="hover:text-white transition" style="color:#D99A7F;">Isporuka</a></li>
+                        <li><a href="#" class="hover:text-white transition" style="color:#D99A7F;">FAQ</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Pratite nas</h4>
+                    <div class="flex space-x-4">
+                        <a href="https://www.instagram.com/kamenoteka_art/" target="_blank" class="hover:text-white transition" style="color:#D99A7F;">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="hover:text-white transition" style="color:#D99A7F;">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-8 text-center" style="border-top: 1px solid #6B4F3A; color: #D99A7F;">
+                <p>&copy; 2026 Kamenoteka Art. Sva prava zadržana.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        mobileMenuBtn.addEventListener('click', () => {
+            // Mobile menu functionality can be added later
+        });
+
+        // ============================================
+        // Contentful konfiguracija
+        // 1. Registruj se na contentful.com (besplatno)
+        // 2. Napravi Space i Content Type "product" sa poljima:
+        //    - title        (Short text)
+        //    - description  (Short text)
+        //    - price        (Short text, npr. "3.500 RSD")
+        //    - category     (Short text, npr. "bebe", "muzika", "gradovi"...)
+        //    - image        (Media)
+        // 3. Zameni SPACE_ID i ACCESS_TOKEN ispod
+        // ============================================
+        const CONTENTFUL_SPACE_ID    = '224amzvf5o0q';
+        const CONTENTFUL_ACCESS_TOKEN = 'BtLcwjsgTglr-cNcdIeeeeOXcemYTlfnKwnwv79phHQ';
+
+        let activeFilter = 'all';
+
+        function applyFilter(filter) {
+            activeFilter = filter;
+            document.querySelectorAll('#products-grid .product-card').forEach(card => {
+                if (filter === 'all') {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = card.getAttribute('data-category') === filter ? 'block' : 'none';
+                }
+            });
+        }
+
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                applyFilter(btn.getAttribute('data-filter'));
+            });
+        });
+
+        // "Poruči" click — event delegation so it works on dynamic cards
+        document.getElementById('products-grid').addEventListener('click', e => {
+            const btn = e.target.closest('.poruci-btn');
+            if (!btn) return;
+            const productName = btn.closest('.product-card').querySelector('h3').textContent;
+            openModal(productName);
+        });
+
+        async function loadProducts() {
+            const url = `https://cdn.contentful.com/spaces/${CONTENTFUL_SPACE_ID}/entries`
+                + `?content_type=product&access_token=${CONTENTFUL_ACCESS_TOKEN}`
+                + `&order=sys.createdAt&limit=200`;
+
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error(res.status);
+                const data = await res.json();
+
+                // Build asset map: assetId -> URL
+                const assets = {};
+                (data.includes && data.includes.Asset || []).forEach(asset => {
+                    assets[asset.sys.id] = 'https:' + asset.fields.file.url;
+                });
+
+                const grid = document.getElementById('products-grid');
+                grid.innerHTML = '';
+
+                if (!data.items || data.items.length === 0) {
+                    grid.innerHTML = '<p class="col-span-3 text-center py-16 text-primary-mid">Nema proizvoda za prikaz.</p>';
+                    return;
+                }
+
+                data.items.forEach(item => {
+                    const { title, description, price, category, image } = item.fields;
+                    const imgUrl = image ? assets[image.sys.id] : null;
+
+                    const card = document.createElement('div');
+                    card.className = 'product-card rounded-xl shadow-md overflow-hidden';
+                    card.style.backgroundColor = '#FBF8F4';
+                    card.setAttribute('data-category', category || 'ostalo');
+
+                    card.innerHTML = imgUrl
+                        ? `<img src="${imgUrl}" alt="${title}" class="w-full aspect-square object-cover">`
+                        : `<div class="placeholder-img aspect-square"><span>${category || ''}</span></div>`;
+
+                    card.innerHTML += `
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold mb-2 text-primary">${title}</h3>
+                            <p class="text-primary-mid mb-4">${description || ''}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-accent">${price || ''}</span>
+                                <button class="poruci-btn bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent-hover transition">Poruči</button>
+                            </div>
+                        </div>`;
+
+                    grid.appendChild(card);
+                });
+
+                applyFilter(activeFilter);
+
+            } catch (err) {
+                console.error('Contentful greška:', err);
+                document.getElementById('products-grid').innerHTML =
+                    '<p class="col-span-3 text-center py-16 text-primary-mid">Greška pri učitavanju proizvoda. Proverite konfiguraciju.</p>';
+            }
+        }
+
+        loadProducts();
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Modal functionality
+        const modal = document.getElementById('product-modal');
+        const modalSubject = document.getElementById('modal-subject');
+        const closeModalBtn = document.querySelector('.close-modal');
+        const productContactForm = document.getElementById('product-contact-form');
+
+        // Open modal function
+        function openModal(productName) {
+            modalSubject.value = productName;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close modal function
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            productContactForm.reset();
+        }
+
+        // Close modal when clicking X
+        closeModalBtn.addEventListener('click', closeModal);
+
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+
+
+
+        // ============================================
+        // EmailJS konfiguracija
+        // Zameni sa vrednostima sa emailjs.com dashboarda
+        // ============================================
+        const EMAILJS_PUBLIC_KEY  = 'qnZc0dPZsoO2IxL84';
+        const EMAILJS_SERVICE_ID  = 'service_kjny9ny';
+        const EMAILJS_TEMPLATE_ID = 'template_selkihi';
+        // ============================================
+
+        emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
+        function sendEmail(formEl, submitBtn) {
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Slanje...';
+
+            const data = {};
+            new FormData(formEl).forEach((value, key) => { data[key] = value; });
+
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, data)
+                .then(() => {
+                    submitBtn.textContent = 'Poruka poslata!';
+                    formEl.reset();
+                    setTimeout(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    }, 3000);
+                })
+                .catch((err) => {
+                    console.error('EmailJS greška:', err);
+                    submitBtn.textContent = 'Greška, pokušaj ponovo';
+                    setTimeout(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    }, 3000);
+                });
+        }
+
+        // Glavna kontakt forma
+        document.getElementById('contact-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            sendEmail(e.target, btn);
+        });
+
+        // Modal forma (porudžbina)
+        productContactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            sendEmail(e.target, btn);
+            setTimeout(closeModal, 3500);
+        });
+    </script>
+</body>
+</html>
