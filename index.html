@@ -61,6 +61,22 @@
             color: white;
         }
 
+        #filter-container {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            -webkit-mask-image: linear-gradient(to right, black 80%, transparent 100%);
+            mask-image: linear-gradient(to right, black 80%, transparent 100%);
+        }
+
+        #filter-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        #filter-container.scrolled-end {
+            -webkit-mask-image: none;
+            mask-image: none;
+        }
+
         .placeholder-img {
             background: linear-gradient(135deg, #e8ddd5 0%, #c9b5a4 100%);
             display: flex;
@@ -114,6 +130,9 @@
         .close-modal:hover {
             color: #4A372A;
         }
+        .product-card em {
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-brand-bg">
@@ -140,7 +159,7 @@
     </nav>
 
     <!-- Hero Section -->
-    <section id="pocetna" class="pt-16" style="position:relative;">
+    <section id="pocetna" class="pt-64 md:pt-16" style="position:relative;">
         <!-- Slika -->
         <picture>
             <source media="(max-width: 768px)" srcset="Heromobile.jpg">
@@ -172,10 +191,15 @@
             </div>
 
             <!-- Filters -->
-            <div class="mb-12">
-                <div id="filter-container" class="flex gap-3 overflow-x-auto pb-3" style="scrollbar-width:thin; scrollbar-color:#A67C5B #F5F1EB;">
+            <div class="mb-12 relative">
+                <div id="filter-container" class="flex gap-3 overflow-x-auto pb-3">
                     <button class="filter-btn active px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="all">Sve</button>
                 </div>
+                <button id="filter-next" class="absolute right-0 top-0 bottom-3 w-12 flex items-center justify-end transition-opacity duration-300" style="background:linear-gradient(to right, transparent, #F5F1EB 55%); color:#A67C5B;" aria-label="Prikaži više filtera">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
             </div>
 
             <!-- Products Grid -->
@@ -455,6 +479,17 @@
                     applyFilter(btn.getAttribute('data-filter'));
                 });
             });
+
+            const nextBtn = document.getElementById('filter-next');
+            const updateArrow = () => {
+                const atEnd = container.scrollLeft + container.clientWidth >= container.scrollWidth - 4;
+                nextBtn.style.opacity = atEnd ? '0' : '1';
+                nextBtn.style.pointerEvents = atEnd ? 'none' : 'auto';
+                container.classList.toggle('scrolled-end', atEnd);
+            };
+            nextBtn.addEventListener('click', () => container.scrollBy({ left: 160, behavior: 'smooth' }));
+            container.addEventListener('scroll', updateArrow, { passive: true });
+            updateArrow();
         }
 
         async function loadProducts() {
@@ -539,7 +574,7 @@
                         : `<div class="placeholder-img aspect-square"><span>${catSlug}</span></div>`;
 
                     card.innerHTML += `
-                        <div class="p-6">
+                        <div class="md:p-6 p-4">
                             <h3 class="text-xl font-semibold mb-2 text-primary">${title}</h3>
                             <div class="text-primary-mid mb-4 text-sm">${descHtml}</div>
                             <div class="flex justify-between items-center">
