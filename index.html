@@ -208,6 +208,8 @@
                     <p class="text-lg">Učitavanje proizvoda...</p>
                 </div>
             </div>
+            <!-- Pagination -->
+            <div id="pagination-container"></div>
         </div>
     </section>
 
@@ -412,15 +414,85 @@
         const CONTENTFUL_ACCESS_TOKEN = 'BtLcwjsgTglr-cNcdIeeeeOXcemYTlfnKwnwv79phHQ';
 
         let activeFilter = 'all';
+        let currentPage = 1;
+        const PAGE_SIZE = 12;
+        let allProducts = [];
 
-        function applyFilter(filter) {
-            activeFilter = filter;
-            document.querySelectorAll('#products-grid .product-card').forEach(card => {
-                if (filter === 'all') {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = card.getAttribute('data-category') === filter ? 'block' : 'none';
+        function getFilteredProducts() {
+            if (activeFilter === 'all') return allProducts;
+            return allProducts.filter(p => p.catSlug === activeFilter);
+        }
+
+        function renderPage() {
+            const filtered = getFilteredProducts();
+            const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const pageItems = filtered.slice(start, start + PAGE_SIZE);
+
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = '';
+
+            if (pageItems.length === 0) {
+                grid.innerHTML = '<p class="col-span-3 text-center py-16 text-primary-mid">Nema proizvoda za prikaz.</p>';
+            } else {
+                pageItems.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'product-card rounded-xl shadow-md overflow-hidden';
+                    card.style.backgroundColor = '#FBF8F4';
+                    card.setAttribute('data-category', p.catSlug);
+
+                    card.innerHTML = p.imgUrl
+                        ? `<img src="${p.imgUrl}" alt="${p.title}" class="w-full aspect-square object-cover">`
+                        : `<div class="placeholder-img aspect-square"><span>${p.catSlug}</span></div>`;
+
+                    card.innerHTML += `
+                        <div class="md:p-6 p-4">
+                            <h3 class="text-xl font-semibold mb-2 text-primary">${p.title}</h3>
+                            <div class="text-primary-mid mb-4 text-sm">${p.descHtml}</div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-2xl font-bold text-accent">${p.price || ''}</span>
+                                <button class="poruci-btn bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent-hover transition">Poruči</button>
+                            </div>
+                        </div>`;
+
+                    grid.appendChild(card);
+                });
+            }
+
+            renderPagination(totalPages);
+        }
+
+        function renderPagination(totalPages) {
+            const container = document.getElementById('pagination-container');
+            if (totalPages <= 1) { container.innerHTML = ''; return; }
+
+            let html = `<div class="flex items-center gap-2 justify-center mt-10 flex-wrap">`;
+
+            html += `<button class="pagination-btn px-4 py-2 rounded-lg font-medium transition ${currentPage === 1 ? 'opacity-40 cursor-not-allowed' : ''}" style="background-color:#e4d5c9; color:#4A372A;" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>←</button>`;
+
+            for (let i = 1; i <= totalPages; i++) {
+                const near = Math.abs(i - currentPage) <= 1;
+                const edge = i === 1 || i === totalPages;
+                if (!near && !edge) {
+                    if (i === 2 || i === totalPages - 1) html += `<span class="px-2 text-primary-mid">…</span>`;
+                    continue;
                 }
+                const active = i === currentPage;
+                html += `<button class="pagination-btn px-4 py-2 rounded-lg font-medium transition" style="${active ? 'background-color:#A67C5B; color:white;' : 'background-color:#e4d5c9; color:#4A372A;'}" data-page="${i}">${i}</button>`;
+            }
+
+            html += `<button class="pagination-btn px-4 py-2 rounded-lg font-medium transition ${currentPage === totalPages ? 'opacity-40 cursor-not-allowed' : ''}" style="background-color:#e4d5c9; color:#4A372A;" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>→</button>`;
+            html += `</div>`;
+            container.innerHTML = html;
+
+            container.querySelectorAll('.pagination-btn:not([disabled])').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentPage = parseInt(btn.getAttribute('data-page'));
+                    renderPage();
+                    document.getElementById('proizvodi').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
             });
         }
 
@@ -474,7 +546,9 @@
                 btn.addEventListener('click', () => {
                     container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    applyFilter(btn.getAttribute('data-filter'));
+                    activeFilter = btn.getAttribute('data-filter');
+                    currentPage = 1;
+                    renderPage();
                 });
             });
 
@@ -519,11 +593,8 @@
                     };
                 });
 
-                const grid = document.getElementById('products-grid');
-                grid.innerHTML = '';
-
                 if (!data.items || data.items.length === 0) {
-                    grid.innerHTML = '<p class="col-span-3 text-center py-16 text-primary-mid">Nema proizvoda za prikaz.</p>';
+                    document.getElementById('products-grid').innerHTML = '<p class="col-span-3 text-center py-16 text-primary-mid">Nema proizvoda za prikaz.</p>';
                     renderFilterButtons({});
                     return;
                 }
@@ -542,11 +613,10 @@
 
                 const uniqueFromProducts = new Set();
 
-                data.items.forEach(item => {
+                allProducts = data.items.map(item => {
                     const { title, description, price, category, image } = item.fields;
                     const imgUrl = image ? assets[image.sys.id] : null;
 
-                    // Resolve category: supports linked entry reference and plain string
                     let catSlug;
                     if (category && typeof category === 'object' && category.sys) {
                         const resolved = linkedCategories[category.sys.id];
@@ -557,40 +627,19 @@
                     }
                     uniqueFromProducts.add(catSlug);
 
-                    // Render description: supports rich text object and plain string
                     const descHtml = description && typeof description === 'object'
                         ? richTextToHtml(description)
                         : (description || '');
 
-                    const card = document.createElement('div');
-                    card.className = 'product-card rounded-xl shadow-md overflow-hidden';
-                    card.style.backgroundColor = '#FBF8F4';
-                    card.setAttribute('data-category', catSlug);
-
-                    card.innerHTML = imgUrl
-                        ? `<img src="${imgUrl}" alt="${title}" class="w-full aspect-square object-cover">`
-                        : `<div class="placeholder-img aspect-square"><span>${catSlug}</span></div>`;
-
-                    card.innerHTML += `
-                        <div class="md:p-6 p-4">
-                            <h3 class="text-xl font-semibold mb-2 text-primary">${title}</h3>
-                            <div class="text-primary-mid mb-4 text-sm">${descHtml}</div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-2xl font-bold text-accent">${price || ''}</span>
-                                <button class="poruci-btn bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent-hover transition">Poruči</button>
-                            </div>
-                        </div>`;
-
-                    grid.appendChild(card);
+                    return { title, descHtml, price, catSlug, imgUrl };
                 });
 
-                // Fall back to unique values from products if category content type had no entries
                 if (Object.keys(categoryMap).length === 0) {
                     uniqueFromProducts.forEach(slug => { categoryMap[slug] = slug; });
                 }
 
                 renderFilterButtons(categoryMap);
-                applyFilter(activeFilter);
+                renderPage();
 
             } catch (err) {
                 console.error('Contentful greška:', err);
