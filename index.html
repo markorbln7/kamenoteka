@@ -173,22 +173,8 @@
 
             <!-- Filters -->
             <div class="mb-12">
-                <div class="flex gap-3 overflow-x-auto pb-3" style="scrollbar-width:thin; scrollbar-color:#A67C5B #F5F1EB;">
+                <div id="filter-container" class="flex gap-3 overflow-x-auto pb-3" style="scrollbar-width:thin; scrollbar-color:#A67C5B #F5F1EB;">
                     <button class="filter-btn active px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="all">Sve</button>
-                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="bebe">Bebe i porodica</button>
-                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="muzika">Muzika i film</button>
-                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="gradovi">Gradovi</button>
-                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="ljubimci">Krzneni prijatelji</button>
-                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="parovi">Pokloni za parove</button>
-                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="horoskop">Horoskop</button>
-                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="prolece">Prolećni motivi</button>
-                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="knjige">Priče i knjige</button>
-                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="ptice">Ptice</button>
-                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="citati">Izreke i citati</button>
-                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="strip">Strip</button>
-                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="umetnici">Inspirisano umetnicima</button>
-                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="zenstvenost">Ženstveni motivi</button>
-                    <button class="filter-btn px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="ostalo">Ilustracije - ostalo</button>
                 </div>
             </div>
 
@@ -416,15 +402,6 @@
             });
         }
 
-        // Filter buttons
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                applyFilter(btn.getAttribute('data-filter'));
-            });
-        });
-
         // "Poruči" click — event delegation so it works on dynamic cards
         document.getElementById('products-grid').addEventListener('click', e => {
             const btn = e.target.closest('.poruci-btn');
@@ -433,20 +410,80 @@
             openModal(productName);
         });
 
+        function richTextToHtml(node) {
+            if (!node || typeof node !== 'object') return node != null ? String(node) : '';
+            if (node.nodeType === 'text') {
+                let t = (node.value || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                (node.marks||[]).forEach(m => {
+                    if (m.type==='bold') t=`<strong>${t}</strong>`;
+                    else if (m.type==='italic') t=`<em>${t}</em>`;
+                    else if (m.type==='underline') t=`<u>${t}</u>`;
+                    else if (m.type==='code') t=`<code>${t}</code>`;
+                });
+                return t;
+            }
+            const kids = (node.content||[]).map(richTextToHtml).join('');
+            switch(node.nodeType) {
+                case 'document':        return kids;
+                case 'paragraph':       return `<p class="mb-1">${kids}</p>`;
+                case 'heading-1':       return `<h1>${kids}</h1>`;
+                case 'heading-2':       return `<h2>${kids}</h2>`;
+                case 'heading-3':       return `<h3>${kids}</h3>`;
+                case 'heading-4':       return `<h4>${kids}</h4>`;
+                case 'heading-5':       return `<h5>${kids}</h5>`;
+                case 'heading-6':       return `<h6>${kids}</h6>`;
+                case 'unordered-list':  return `<ul class="list-disc pl-4">${kids}</ul>`;
+                case 'ordered-list':    return `<ol class="list-decimal pl-4">${kids}</ol>`;
+                case 'list-item':       return `<li>${kids}</li>`;
+                case 'blockquote':      return `<blockquote class="border-l-2 pl-2 italic">${kids}</blockquote>`;
+                case 'hr':              return '<hr>';
+                case 'hyperlink':       return `<a href="${(node.data&&node.data.uri)||'#'}" target="_blank" rel="noopener" class="underline">${kids}</a>`;
+                default:                return kids;
+            }
+        }
+
+        function renderFilterButtons(categoryMap) {
+            const container = document.getElementById('filter-container');
+            const entries = [['all', 'Sve'], ...Object.entries(categoryMap)];
+            container.innerHTML = entries.map(([slug, name], i) =>
+                `<button class="filter-btn${i===0?' active':''} px-5 py-2 rounded-full font-medium whitespace-nowrap flex-shrink-0" style="background-color:#e4d5c9; color:#4A372A;" data-filter="${slug}">${name}</button>`
+            ).join('');
+            container.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    applyFilter(btn.getAttribute('data-filter'));
+                });
+            });
+        }
+
         async function loadProducts() {
-            const url = `https://cdn.contentful.com/spaces/${CONTENTFUL_SPACE_ID}/entries`
-                + `?content_type=product&access_token=${CONTENTFUL_ACCESS_TOKEN}`
-                + `&order=sys.createdAt&limit=200`;
+            const base  = `https://cdn.contentful.com/spaces/${CONTENTFUL_SPACE_ID}/entries`;
+            const token = `access_token=${CONTENTFUL_ACCESS_TOKEN}`;
 
             try {
-                const res = await fetch(url);
-                if (!res.ok) throw new Error(res.status);
-                const data = await res.json();
+                const [productsRes, categoriesRes] = await Promise.all([
+                    fetch(`${base}?content_type=product&${token}&order=sys.createdAt&limit=200`),
+                    fetch(`${base}?content_type=category&${token}&order=fields.name`).catch(() => null)
+                ]);
 
-                // Build asset map: assetId -> URL
+                if (!productsRes.ok) throw new Error(productsRes.status);
+                const data = await productsRes.json();
+
+                // Asset map: assetId -> URL
                 const assets = {};
                 (data.includes && data.includes.Asset || []).forEach(asset => {
                     assets[asset.sys.id] = 'https:' + asset.fields.file.url;
+                });
+
+                // Linked category entries map: entryId -> { slug, name }
+                const linkedCategories = {};
+                (data.includes && data.includes.Entry || []).forEach(entry => {
+                    const f = entry.fields;
+                    linkedCategories[entry.sys.id] = {
+                        slug: f.slug || f.key || entry.sys.id,
+                        name: f.name || f.title || f.label || f.slug || entry.sys.id
+                    };
                 });
 
                 const grid = document.getElementById('products-grid');
@@ -454,26 +491,57 @@
 
                 if (!data.items || data.items.length === 0) {
                     grid.innerHTML = '<p class="col-span-3 text-center py-16 text-primary-mid">Nema proizvoda za prikaz.</p>';
+                    renderFilterButtons({});
                     return;
                 }
+
+                // Build category map from dedicated category content type
+                const categoryMap = {};
+                if (categoriesRes && categoriesRes.ok) {
+                    const catData = await categoriesRes.json();
+                    (catData.items || []).forEach(cat => {
+                        const f = cat.fields;
+                        const slug = f.slug || f.key || cat.sys.id;
+                        const name = f.name || f.title || f.label || slug;
+                        categoryMap[slug] = name;
+                    });
+                }
+
+                const uniqueFromProducts = new Set();
 
                 data.items.forEach(item => {
                     const { title, description, price, category, image } = item.fields;
                     const imgUrl = image ? assets[image.sys.id] : null;
 
+                    // Resolve category: supports linked entry reference and plain string
+                    let catSlug;
+                    if (category && typeof category === 'object' && category.sys) {
+                        const resolved = linkedCategories[category.sys.id];
+                        catSlug = resolved ? resolved.slug : category.sys.id;
+                        if (resolved && !categoryMap[catSlug]) categoryMap[catSlug] = resolved.name;
+                    } else {
+                        catSlug = category || 'ostalo';
+                    }
+                    uniqueFromProducts.add(catSlug);
+
+                    // Render description: supports rich text object and plain string
+                    const descHtml = description && typeof description === 'object'
+                        ? richTextToHtml(description)
+                        : (description || '');
+
                     const card = document.createElement('div');
                     card.className = 'product-card rounded-xl shadow-md overflow-hidden';
                     card.style.backgroundColor = '#FBF8F4';
-                    card.setAttribute('data-category', category || 'ostalo');
+                    card.setAttribute('data-category', catSlug);
 
                     card.innerHTML = imgUrl
                         ? `<img src="${imgUrl}" alt="${title}" class="w-full aspect-square object-cover">`
-                        : `<div class="placeholder-img aspect-square"><span>${category || ''}</span></div>`;
+                        : `<div class="placeholder-img aspect-square"><span>${catSlug}</span></div>`;
 
                     card.innerHTML += `
                         <div class="p-6">
                             <h3 class="text-xl font-semibold mb-2 text-primary">${title}</h3>
-                            <p class="text-primary-mid mb-4">${description || ''}</p>
+                            <div class="text-primary-mid mb-4 text-sm">${descHtml}</div>
                             <div class="flex justify-between items-center">
                                 <span class="text-2xl font-bold text-accent">${price || ''}</span>
                                 <button class="poruci-btn bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent-hover transition">Poruči</button>
@@ -483,6 +551,12 @@
                     grid.appendChild(card);
                 });
 
+                // Fall back to unique values from products if category content type had no entries
+                if (Object.keys(categoryMap).length === 0) {
+                    uniqueFromProducts.forEach(slug => { categoryMap[slug] = slug; });
+                }
+
+                renderFilterButtons(categoryMap);
                 applyFilter(activeFilter);
 
             } catch (err) {
